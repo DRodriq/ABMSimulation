@@ -15,6 +15,7 @@ NUM_INITIAL_AGENTS = 1000
 #                                                    #
 ######################################################
 
+
 # Screen Sizing
 SCREENSIZE = WIDTH, HEIGHT = 1500, 1000
 PLOT_SIZE = 900
@@ -40,11 +41,14 @@ AGENT_COLOR = RED
 LINE_COLOR = GREY
 BORDER_COLOR = BLACK
 
+
 ######################################################
 #                                                    #
 #                World Settings                      #
 #                                                    #
 ######################################################
+
+
 DESERT_CHANCE = 85
 FOOD_1_CHANCE = 90
 FOOD_2_CHANCE = 94
