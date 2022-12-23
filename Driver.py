@@ -4,9 +4,7 @@ import threading
 import pygame
 import time
 import Simulation
-
-
-
+import CONFIG
 
 def main():
 
@@ -15,26 +13,37 @@ def main():
     simulation.generate_initial_map()
     simulation.generate_initial_agents()
     rendering_thread = threading.Thread(target=Renderer.start_rendering, daemon=None)
-    rendering_thread.start()
-    time.sleep(.5)
+    if(CONFIG.DO_RENDER):
+        rendering_thread.start()
+    time.sleep(1)
     print("Start: ",len(simulation.sim_world.world_agents))
 
     # Loop 
-    for i in range(0,50):
-        simulation.move_agents()
-        update1 = pygame.event.Event(Renderer.UPDATE_FOOD_OVERLAY, message=simulation.sim_world.get_world_food_overlay())
-        pygame.event.post(update1)
-        update2 = pygame.event.Event(Renderer.UPDATE_AGENT_OVERLAY, message=simulation.sim_world.get_world_agent_overlay())
-        pygame.event.post(update2)
-        time.sleep(.5)
+    i = 0
+    while(i < CONFIG.NUM_GENERATIONS and len(simulation.sim_world.world_agents) != 0):
+        simulation.simulate()
+        if(CONFIG.DO_RENDER):
+            update1 = pygame.event.Event(Renderer.UPDATE_FOOD_OVERLAY, message=simulation.sim_world.get_world_food_overlay())
+            pygame.event.post(update1)
+            update2 = pygame.event.Event(Renderer.UPDATE_AGENT_OVERLAY, message=simulation.sim_world.get_world_agent_overlay())
+            pygame.event.post(update2)
+        time.sleep(.2)
+        i = i + 1
     
-    print("End: ",len(simulation.sim_world.world_agents))
-  #  for i in range(len(simulation.sim_world.world_agents)):
-  #      simulation.sim_world.world_agents[i].print_agent_stats()
-    
+    # Processing
+    print("End: ", len(simulation.sim_world.world_agents))
+    highest_score = 0
+    agent_index = 0
+    for i in range(len(simulation.sim_world.world_agents)):
+        if(simulation.sim_world.world_agents[i].get_agent_fitness_score() > highest_score):
+            highest_score = simulation.sim_world.world_agents[i].get_agent_fitness_score()
+            agent_index = i
+    simulation.sim_world.world_agents[agent_index].print_agent_stats()
+
     # Teardown
-    stop_rendering = pygame.event.Event(Renderer.STOP_RENDERING, message=False)
-    pygame.event.post(stop_rendering)
+    if(CONFIG.DO_RENDER):
+        stop_rendering = pygame.event.Event(Renderer.STOP_RENDERING, message=False)
+        pygame.event.post(stop_rendering)
     print("Done")
 
 

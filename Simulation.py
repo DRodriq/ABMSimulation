@@ -33,55 +33,58 @@ class Simulation:
         for _ in range(CONFIG.NUM_INITIAL_AGENTS):
             x = random.randint(0, CONFIG.MAP_DIMENSION-1)
             y = random.randint(0, CONFIG.MAP_DIMENSION-1)
-            ambition = random.randint(0, 100) / 100
-            aggression = random.randint(0, 100) / 100
-            sex_num = random.randint(0,1)
-            if(sex_num == 0):
-                sex = "male"
-            else:
-                sex = "female"
-            self.sim_world.world_agents.append(World.Agent(locationx = x, locationy = y, base_ambition = ambition, base_aggression = aggression, sex = sex))
+            new_agent = World.Agent(locationx = x, locationy = y, id = len(self.sim_world.world_agents) + 1)
+            new_agent.cortex.create_random_neural_network()
+            self.sim_world.world_agents.append(new_agent)
 
-
-
-# Needs a lot of work. ---->
-    def move_agents(self):
-        # Will Agent Move?
-        
+            
+    # Provide information about the world and have agent's execute their turn, then update the world accordingly
+    def simulate(self):
+        new_agents = []
+        IDs_of_Dead = []
         for i in range(len(self.sim_world.world_agents)):
             if(self.sim_world.world_agents[i].alive == 1):
+                agent_decision = "none"
+                # Get the enviornment
+                location_yield = self.sim_world.world_map[self.sim_world.world_agents[i].locationx][self.sim_world.world_agents[i].locationy].food_yield
+                cohabiting_agents = self.sim_world.get_agents_at_location(self.sim_world.world_agents[i].locationx, self.sim_world.world_agents[i].locationy)
+                number_cohabitants = len(cohabiting_agents) - 1
+                # neighboring_plots = self.sim_world.get_neighboring_plots()
 
-                food_secure = False
-
-                # Assess the external situation 
-                abs_yield = self.sim_world.world_map[self.sim_world.world_agents[i].locationx][self.sim_world.world_agents[i].locationy].food_yield
-                shared_population = self.sim_world.get_number_of_agents_on_a_plot(self.sim_world.world_agents[i].locationx, self.sim_world.world_agents[i].locationy) - 1
-                current_yield = abs_yield - shared_population if abs_yield - shared_population >= 0 else 0
-
-                # Are we food secure?
-                if(current_yield != 0):
-                    food_secure = True
+                agent_decision = self.sim_world.world_agents[i].execute_turn(location_yield, cohabiting_agents)
                 
-                # Give reward
-                self.sim_world.world_agents[i].health = self.sim_world.world_agents[i].health + current_yield - 1
-                self.sim_world.world_agents[i].age = self.sim_world.world_agents[i].age + 1
+                # Implement agent decisions that impact the world beyond them
+                if(agent_decision == "PROCREATE"):
+                    if(number_cohabitants > 0 and self.sim_world.world_agents[i].wealth > CONFIG.REPRODUCTION_COST):
+                        self.sim_world.world_agents[i].wealth = self.sim_world.world_agents[i].wealth - CONFIG.REPRODUCTION_COST
+                        self.sim_world.world_agents[i].offspring_count = self.sim_world.world_agents[i].offspring_count + 1
+                        id = len(self.sim_world.world_agents) + 1
+                        new_agent = World.Agent(locationx = self.sim_world.world_agents[i].locationx, locationy = self.sim_world.world_agents[i].locationy, age = 0, wealth = 0, health = 5, id = id)
+                        new_agent.cortex.create_random_neural_network()
+                        new_agents.append(new_agent)
 
-                # Is dead?
-                if(self.sim_world.world_agents[i].health == 0):
+                if(agent_decision == "MOVE"):
+                    movement = random.randint(0,3)  # left, right, up, down
+                    if(movement == 0 and self.sim_world.world_agents[i].locationx != 0):
+                        self.sim_world.world_agents[i].locationx = self.sim_world.world_agents[i].locationx - 1
+                    if(movement == 1 and self.sim_world.world_agents[i].locationx != CONFIG.MAP_DIMENSION - 1):
+                        self.sim_world.world_agents[i].locationx = self.sim_world.world_agents[i].locationx + 1
+                    if(movement == 2 and self.sim_world.world_agents[i].locationy != 0):
+                        self.sim_world.world_agents[i].locationy = self.sim_world.world_agents[i].locationy - 1
+                    if(movement == 3 and self.sim_world.world_agents[i].locationy != CONFIG.MAP_DIMENSION - 1):
+                        self.sim_world.world_agents[i].locationy = self.sim_world.world_agents[i].locationy + 1
+
+                
+                if(agent_decision == "FIGHT"):
+                    if(number_cohabitants > 0):
+                        index_of_defeated = random.randint(0, number_cohabitants)
+                        IDs_of_Dead.append(cohabiting_agents[index_of_defeated])
+                        if(IDs_of_Dead.count(self.sim_world.world_agents[i].ID) == 0):
+                            self.sim_world.world_agents[i].foes_defeated = self.sim_world.world_agents[i].foes_defeated + 1
+
+                if(agent_decision == "NONE"):
                     self.sim_world.world_agents[i].alive = 0
-                
-                else:
-                    will_move = not(food_secure)
 
-                    if(will_move):
-                        movement = random.randint(0,3)  # left, right, up, down
-                        if(movement == 0 and self.sim_world.world_agents[i].locationx != 0):
-                            self.sim_world.world_agents[i].locationx = self.sim_world.world_agents[i].locationx - 1
-                        if(movement == 1 and self.sim_world.world_agents[i].locationx != CONFIG.MAP_DIMENSION - 1):
-                            self.sim_world.world_agents[i].locationx = self.sim_world.world_agents[i].locationx + 1
-                        if(movement == 2 and self.sim_world.world_agents[i].locationy != 0):
-                            self.sim_world.world_agents[i].locationy = self.sim_world.world_agents[i].locationy - 1
-                        if(movement == 3 and self.sim_world.world_agents[i].locationy != CONFIG.MAP_DIMENSION - 1):
-                            self.sim_world.world_agents[i].locationy = self.sim_world.world_agents[i].locationy + 1
-            
-        self.sim_world.world_agents = [x for x in self.sim_world.world_agents if not x.alive == 0]
+        self.sim_world.world_agents = [x for x in self.sim_world.world_agents if x.alive == 1 and IDs_of_Dead.count(x.ID) == 0]
+        self.sim_world.world_agents = self.sim_world.world_agents + new_agents
+

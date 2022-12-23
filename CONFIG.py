@@ -7,7 +7,9 @@
 
 MAP_DIMENSION = 100
 NUM_INITIAL_AGENTS = 1000
+NUM_GENERATIONS = 100
 
+DO_RENDER = True
 
 ######################################################
 #                                                    #
@@ -55,3 +57,34 @@ FOOD_2_CHANCE = 94
 FOOD_3_CHANCE = 97
 FOOD_4_CHANCE = 99
 FOOD_5_CHANCE = 100
+
+######################################################
+#                                                    #
+#                Agent Settings                      #
+#                                                    #
+######################################################
+
+NEIGHBORHOOD_TYPES = ["NEUMANN", "MOORE"]       # Moore includes diagnals
+NEIGHBORHOOD_TYPE_USED = "MOORE"
+VIEWING_DISTANCE = 1
+
+REPRODUCTION_COST = 10
+
+PRIMITIVE_INPUTS = ["AGENT_HEALTH", "LOCATION_YIELD", "NUMBER_COHABITANTS", "AGENT_WEALTH", "AGENT_OFFSPRING_COUNT"] # "AGENT_WEALTH", "AGENT_OFFSPRING_COUNT", "LOCATION_COHABITANTS", "NEIGHBOR_YIELDS", "NEIGHBOR_COHABITANTS"] #... Need to think about these more
+PRIMITIVE_OPERATORS = ["+", "-", "*", "/"]
+
+OUTPUT_ACTIONS = ["WAIT", "MOVE", "PROCREATE", "FIGHT"] #, "TRADE"]
+
+######################################################
+#                                                    #
+#                Neural Net Settings                 #
+#                                                    #
+######################################################
+
+MIN_HIDDEN_NEURONS = 1
+MAX_HIDDEN_NEURONS = 8
+MAX_WEIGHT_VALUE = 100
+MIN_WEIGHT_VALUE = -100
+NUMBER_HIDDEN_LAYERS = 1
+
+GENOME_FILE = "C:\SourceCode\Python\CASimulation\saved_genomes\survivors.txt"

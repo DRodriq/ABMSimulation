@@ -23,7 +23,7 @@ def start_rendering():
     _VARS['gridOrigin'], _VARS['gridWH'], CONFIG.MAP_DIMENSION)
     checkEvents()
     pygame.display.update()
-    time.sleep(.5)
+    time.sleep(.3)
         
 # Parameters: A 2D map of integers
 # Precondition: A partially rendered world map
