@@ -19,7 +19,7 @@ class NeuralNetwork:
         # Fill the array with random values between
         for i in range(self.matrices[-1].shape[1]):
             for j in range(dimension):
-                do_populate = random.randint(0,5)
+                do_populate = random.randint(0,4)
                 if(do_populate != 5):
                     matrix[i, j] = (random.randint(CONFIG.MIN_WEIGHT_VALUE, CONFIG.MAX_WEIGHT_VALUE) / 100)
         self.matrices.append(matrix)
@@ -35,20 +35,31 @@ class NeuralNetwork:
 
     def create_random_neural_network(self):
         self.create_input_matrix()
-        for i in range(CONFIG.NUMBER_HIDDEN_LAYERS):
+        number_layers = random.randint(0, CONFIG.MAX_NUMBER_HIDDEN_LAYERS)
+        for i in range(number_layers):
             dimension = random.randint(CONFIG.MIN_HIDDEN_NEURONS, CONFIG.MAX_HIDDEN_NEURONS)
             self.create_hidden_layer_matrix(dimension=dimension)
         self.create_output_matrix()
 
     def get_output_vector(self, input_vector):
-        #if(len(input_vector) != len(self.matrices[0])):
-        #    buffer_num = len(self.matrices[0]) - len(input_vector)
-        #    if(buffer_num > 0):
-        #        for i in range(buffer_num):
-        #            input_vector.append(0)
-        #    else:
-        #        print("Input vector too large!!!!!!")
         current_vector = input_vector
         for i in range(len(self.matrices)):
             current_vector = np.matmul(current_vector,self.matrices[i])
         return current_vector
+
+    def mutate_cortex(self):
+        for i in range(1,len(self.matrices)-1):
+            for j in range(self.matrices[i].shape[0]):
+                for k in range(self.matrices[i].shape[1]):
+                    mutate = random.randint(0,10000)
+                    if(mutate > 9999):
+                        add = (random.randint(CONFIG.MIN_WEIGHT_VALUE / 10, CONFIG.MAX_WEIGHT_VALUE / 10) / 100)
+                        print("EVENT: Mutation by ", add, " amount!")
+                        self.matrices[i][j][k] = self.matrices[i][j][k] + add
+
+    def print_cortex_details(self):
+        nodes_per_layer = []
+        for i in range(len(self.matrices)):
+            nodes_per_layer.append(self.matrices[i].shape[1])
+
+        print("CORTEX > [LAYERS]:", len(self.matrices), "[NODES PER LAYER]:", nodes_per_layer)

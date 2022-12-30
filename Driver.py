@@ -30,15 +30,17 @@ def main():
         time.sleep(.2)
         i = i + 1
     
-    # Processing
+    # Post Processing
     print("End: ", len(simulation.sim_world.world_agents))
-    highest_score = 0
-    agent_index = 0
-    for i in range(len(simulation.sim_world.world_agents)):
-        if(simulation.sim_world.world_agents[i].get_agent_fitness_score() > highest_score):
-            highest_score = simulation.sim_world.world_agents[i].get_agent_fitness_score()
-            agent_index = i
-    simulation.sim_world.world_agents[agent_index].print_agent_stats()
+    if(not(len(simulation.sim_world.world_agents) == 0)):
+        highest_score = 0
+        agent_index = 0
+        for i in range(len(simulation.sim_world.world_agents)):
+            if(simulation.sim_world.world_agents[i].get_agent_fitness_score() > highest_score):
+                highest_score = simulation.sim_world.world_agents[i].get_agent_fitness_score()
+                agent_index = i
+        simulation.sim_world.world_agents[agent_index].print_agent_stats()
+        simulation.sim_world.world_agents[agent_index].cortex.print_cortex_details()
 
     # Teardown
     if(CONFIG.DO_RENDER):

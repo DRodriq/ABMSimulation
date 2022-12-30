@@ -1,6 +1,7 @@
 
 import CONFIG
 import NeuralNet
+import random
 
 ###################### World Map Classes #########################
 
@@ -11,6 +12,7 @@ class World:
     def __init__(self):
         self.world_map = []
         self.world_agents = []
+
     world_map = []
     world_agents = []
 
@@ -38,11 +40,11 @@ class World:
                 return index
     
     def get_agents_at_location(self, x, y):
-        agent_IDS = []
+        agents = []
         for i in range(len(self.world_agents)):
             if(self.world_agents[i].locationx == x and self.world_agents[i].locationy == y):
-                agent_IDS.append(self.world_agents[i].ID)
-        return agent_IDS
+                agents.append(self.world_agents[i])
+        return agents
 
     def get_neighboring_plots(self, x, y):
         neighboring_plots = []
@@ -64,7 +66,6 @@ class World:
             neighboring_plots.append(self.world_map[LEFT_DOWN[0]][LEFT_DOWN[1]])
             neighboring_plots.append(self.world_map[RIGHT_DOWN[0]][RIGHT_DOWN[1]])
         return neighboring_plots
-
 
 # A Landplot is a collection of attributes associated with an individual grid point
 class LandPlot:
@@ -96,7 +97,6 @@ class Agent:
     offspring_count = 0
     locationx = 0
     locationy = 0
-
     times_moved = 0
     foes_defeated = 0
 
@@ -104,40 +104,69 @@ class Agent:
 
     alive = 1
     ID = 0
+    last_move = -1
 
-    def execute_turn(self, location_yield, neighbors):
+    novel_inputs = []
+
+    def execute_turn(self, location_yield, cohabitants, neighboring_plots):
         decision = 'NONE'
         if(self.alive == 0):
             return decision
 
-        decision = self.get_decision(LOCATION_YIELD = location_yield, NUMBER_COHABITANTS = len(neighbors))
-        self.health = self.health + location_yield - (len(neighbors))
+        input_vector = self.get_input_vector(AGENT_HEALTH = self.health, LOCATION_YIELD = location_yield, 
+        NUMBER_COHABITANTS = len(cohabitants), AGENT_WEALTH = self.wealth, 
+        AGENT_OFFSPRING_COUNT = self.offspring_count, AGENT_AGE = self.age)
+        decision = self.get_neural_output(input_vector)
+
+        self.health = self.health + location_yield - (len(cohabitants))
 
         if(self.health > 5):
             self.wealth = self.wealth + self.health - 5
             self.health = 5
 
         if(self.health <= 0):
+            if(self.wealth >= 10):
+                self.wealth = self.wealth - 10
+                self.health = 5
+                print("EVENT: Agent saved themself with a trade!")
+            else:
+                self.alive = 0
+        if(self.age > 100):
             self.alive = 0
         else:
             self.age = self.age + 1
 
+        # 0 = left, 1 = right, 2 = up, 3 = down
+        if(decision == "MOVE"):
+            self.random_move()
+            self.times_moved = self.times_moved + 1
+
         return decision
 
-    def get_decision(self, **INPUTS):
+    def get_input_vector(self, **INPUTS):
         decision = "NONE"
         input_vector = []
         for i in range(len(CONFIG.PRIMITIVE_INPUTS)):
             input_vector.append(0)
-        input_vector[0] = self.health
         for key, value in INPUTS.items():
-            if(key == CONFIG.PRIMITIVE_INPUTS[1]):
+            if(key == CONFIG.PRIMITIVE_INPUTS[0]): # health
+                input_vector[0] = self.health
+            if(key == CONFIG.PRIMITIVE_INPUTS[1]): # yield
                 input_vector[1] = value
-            if(key == CONFIG.PRIMITIVE_INPUTS[2]):
+            if(key == CONFIG.PRIMITIVE_INPUTS[2]): # # cohabitants
                 input_vector[2] = value
+            if(key == CONFIG.PRIMITIVE_INPUTS[3]): # wealth
+                input_vector[3] = self.wealth
+            if(key == CONFIG.PRIMITIVE_INPUTS[4]): # offspring
+                input_vector[4] = self.offspring_count
+            if(key == CONFIG.PRIMITIVE_INPUTS[5]): # age
+                input_vector[5] = self.age
 
+        return input_vector
+
+    def get_neural_output(self, input_vector):
+        decision = "NONE"
         output = self.cortex.get_output_vector(input_vector)
-        
         largest_outpulse = -100
         index  = 0
         for i in range(len(output)):
@@ -149,7 +178,6 @@ class Agent:
             decision = "WAIT"
         if(index == 1):
             decision = "MOVE"
-            self.times_moved = self.times_moved + 1
         if(index == 2):
             decision = "PROCREATE"
         if(index == 3):
@@ -162,5 +190,38 @@ class Agent:
 
     def get_agent_fitness_score(self):
        # print("MOVED: ", self.has_moved, "OFF_SPRING: ", self.offspring_count)
-        fitness_score = self.offspring_count + (self.times_moved) + (self.foes_defeated)
-        return fitness_score
+        fitness_Score = (self.offspring_count)
+        return fitness_Score
+
+    def random_move(self):
+        movement_direction = random.randint(0,3)
+        while(movement_direction == self.last_move):
+            movement_direction = random.randint(0,3)
+        if(movement_direction == 0):
+            self.last_move = 1
+        if(movement_direction == 1):
+            self.last_move = 0
+        if(movement_direction == 2):
+            self.last_move = 3
+        if(movement_direction == 3):
+            self.last_move = 2
+        if(movement_direction == 0 and self.locationx != 0):
+            self.locationx = self.locationx - 1
+        if(movement_direction == 1 and self.locationx != CONFIG.MAP_DIMENSION - 1):
+            self.locationx = self.locationx + 1
+        if(movement_direction == 2 and self.locationy != 0):
+            self.locationy = self.locationy - 1
+        if(movement_direction == 3 and self.locationy != CONFIG.MAP_DIMENSION - 1):
+            self.locationy = self.locationy + 1
+
+    def directed_move(self, movement_direction):
+
+        if(movement_direction == 0 and self.locationx != 0):
+            self.locationx = self.locationx - 1
+        if(movement_direction == 1 and self.locationx != CONFIG.MAP_DIMENSION - 1):
+            self.locationx = self.locationx + 1
+        if(movement_direction == 2 and self.locationy != 0):
+            self.locationy = self.locationy - 1
+        if(movement_direction == 3 and self.locationy != CONFIG.MAP_DIMENSION - 1):
+            self.locationy = self.locationy + 1
+

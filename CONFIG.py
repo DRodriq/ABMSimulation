@@ -6,8 +6,8 @@
 
 
 MAP_DIMENSION = 100
-NUM_INITIAL_AGENTS = 1000
-NUM_GENERATIONS = 100
+NUM_INITIAL_AGENTS = 2000
+NUM_GENERATIONS = 100000
 
 DO_RENDER = True
 
@@ -51,12 +51,13 @@ BORDER_COLOR = BLACK
 ######################################################
 
 
-DESERT_CHANCE = 85
-FOOD_1_CHANCE = 90
-FOOD_2_CHANCE = 94
-FOOD_3_CHANCE = 97
-FOOD_4_CHANCE = 99
-FOOD_5_CHANCE = 100
+DEFAULT_LANDSCAPE = [85,90,94,97,99,100]
+DESERT_LANDSCAPE = [90,93,95,97,99,100]
+FERTILE_LANDSCAPE = [75,85,90,95,98,100]
+SUPER_FERTILE_LANDSCAPE = [65,85,90,95,98,100]
+
+LANDSCAPE_PROFILE = FERTILE_LANDSCAPE
+
 
 ######################################################
 #                                                    #
@@ -64,16 +65,18 @@ FOOD_5_CHANCE = 100
 #                                                    #
 ######################################################
 
+
 NEIGHBORHOOD_TYPES = ["NEUMANN", "MOORE"]       # Moore includes diagnals
 NEIGHBORHOOD_TYPE_USED = "MOORE"
 VIEWING_DISTANCE = 1
 
 REPRODUCTION_COST = 10
 
-PRIMITIVE_INPUTS = ["AGENT_HEALTH", "LOCATION_YIELD", "NUMBER_COHABITANTS", "AGENT_WEALTH", "AGENT_OFFSPRING_COUNT"] # "AGENT_WEALTH", "AGENT_OFFSPRING_COUNT", "LOCATION_COHABITANTS", "NEIGHBOR_YIELDS", "NEIGHBOR_COHABITANTS"] #... Need to think about these more
+PRIMITIVE_INPUTS = ["AGENT_HEALTH", "LOCATION_YIELD", "NUMBER_COHABITANTS", "AGENT_WEALTH", "AGENT_OFFSPRING_COUNT", "AGENT_AGE"] #"LEFT_NEIGHBOR_YIELD", "RIGHT_NEIGHBOR_YIELD", "UP_NEIGHBOR_YIELD", "DOWN_NEIGHBOR_YIELD"] # "LOCATION_COHABITANTS", "NEIGHBOR_YIELDS", "NEIGHBOR_COHABITANTS"] #... Need to think about these more
 PRIMITIVE_OPERATORS = ["+", "-", "*", "/"]
 
 OUTPUT_ACTIONS = ["WAIT", "MOVE", "PROCREATE", "FIGHT"] #, "TRADE"]
+
 
 ######################################################
 #                                                    #
@@ -81,10 +84,12 @@ OUTPUT_ACTIONS = ["WAIT", "MOVE", "PROCREATE", "FIGHT"] #, "TRADE"]
 #                                                    #
 ######################################################
 
-MIN_HIDDEN_NEURONS = 1
-MAX_HIDDEN_NEURONS = 8
+
+MIN_HIDDEN_NEURONS = 3
+MAX_HIDDEN_NEURONS = 12
 MAX_WEIGHT_VALUE = 100
 MIN_WEIGHT_VALUE = -100
-NUMBER_HIDDEN_LAYERS = 1
+MAX_NUMBER_HIDDEN_LAYERS = 5
 
 GENOME_FILE = "C:\SourceCode\Python\CASimulation\saved_genomes\survivors.txt"
+
